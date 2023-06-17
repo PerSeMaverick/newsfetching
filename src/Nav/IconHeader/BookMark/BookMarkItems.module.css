@@ -1,0 +1,10 @@
+.bookMarkItemBottom {
+  display: flex;
+  margin-top: none;
+}
+.bookMarkItemPubDate {
+  flex-grow: 8;
+}
+.bookMarkDelete {
+  flex-grow: 2;
+}

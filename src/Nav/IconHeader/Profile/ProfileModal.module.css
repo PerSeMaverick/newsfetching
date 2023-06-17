@@ -1,0 +1,13 @@
+.photo {
+  display: flex;
+}
+
+.detail {
+  width: 18rem;
+}
+
+.save {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}

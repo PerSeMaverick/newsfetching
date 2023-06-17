@@ -1,0 +1,10 @@
+.avatar {
+  margin-right: 20px;
+}
+.sign {
+  margin-left: 10px;
+}
+#basic-menu {
+  display: block;
+  justify-content: center;
+}
