@@ -1,4 +1,4 @@
-# 프로젝트 이름
+# News fetching service
 
 <p align="center">
   <br>
@@ -22,9 +22,9 @@ GIF Images
 
 ## 기술 스택
 
-| JavaScript | TypeScript |  React   |  Node   |
-| :--------: | :--------: | :------: | :-----: |
-|   ![js]    |   ![ts]    | ![react] | ![node] |
+|   Html  |  CSS   | JavaScript |   React   |
+| :-----: | :----: | :--------: |  :------: |
+| ![html] | ![css] |   ![js]    |  ![react] |
 
 <br>
 
