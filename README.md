@@ -5,7 +5,9 @@
   <img width="1335" alt="스크린샷 2023-08-09 21 02 24" src="https://github.com/PerSeMaverick/newsfetching/assets/104728148/4de1d8b6-f915-45da-82ff-2eb25b80ac11">
   <br>
 </p>
+
 <br>
+
 <p align="center">
 GIF Images
 </p>
@@ -165,6 +167,7 @@ reducers: {
 </div>
 ```
 </details>
+<br>
 
 ### 기능 2 - 무한 스크롤
 처음에는 div의 속성중 onScroll안에 event객체를 담고있어 scroll에 대한 정보로 쉽게 기능을 구현할 수 있겠다싶어 onScroll로 구현하려했으나<br>
@@ -265,8 +268,11 @@ const News = () => {
 export default News;
 ```
 </details>
+<br>
 
 ### 기능 3 - 게시물 저장(bookmark)
+
+<br>
 
 ### 기능 4 - 게시물 검색
 
@@ -285,6 +291,8 @@ api를 사용하거나 무한 스크롤, Redux를 이용해서 state를 바꾸�
 모양만 만들어 놓고 동작하지 않는 컴포넌트도 많다.<br>
 하지만 이번 프로젝트는 react와 redux를 활용해 state를 대충이라도 만져보고 익숙해지는 것이 목표었기 때문에 어느 정도는 만족한다.
 </p>
+
+<br>
 
 ## 외부 리소스, 라이브러리 정보
 <p align="justify">
