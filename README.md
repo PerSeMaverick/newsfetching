@@ -68,6 +68,7 @@ twitch.com의 유저 설정 UI를 참고하여 만들었다.<br>
 ```
 
 ```javascript
+(IsLoggin.jsx)
 import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 
@@ -166,8 +167,106 @@ reducers: {
 </details>
 
 ### 기능 2 - 무한 스크롤
+처음에는 div의 속성중 onScroll안에 event객체를 담고있어 scroll에 대한 정보로 쉽게 기능을 구현할 수 있겠다싶어 onScroll로 구현하려했으나<br>
+스크롤을 진행하는 순간마다 이벤트가 호출되어 메인 스레드 성능에 좋지 않고, 쓰로틀(Throttle)과 같은 최적화 작업이 늘 동반되어야 한다.<br>
+하지만 IntersectionObserver는 메인 스레드와 별개로 비동기적으로 실행되기 때문에,<br>
+별도의 최적화가 없더라도 기본적으로 훨씬 빠른 퍼포먼스를 보여준다.<br>
+⇒ 따라서 IntersectionObserver를 사용했다.<br>
+<details>
+<summary>코드 보기</summary>
+<div markdown="1">
+	
+```javascript
+(News.jsx)
 
-### 기능 3 - 게시물 저장
+import React, { useEffect, useState } from "react";
+import NewsItem from "./NewsItem";
+
+import classes from "./News.module.css";
+
+import axios from "axios";
+
+const News = () => {
+  let [fetchedData, setFetchedData] = useState([]);
+
+	useEffect 내부에서 fetchData함수를 실행해서 데이터를 가져온 후에
+	  useEffect(() => {
+	    fetchData();
+	    let timer = setTimeout(() => {
+	      // 4. observeLastItem함수로 마지막 아이탬을 찾을 때까지 관찰한다.
+	      const observeLastItem = (observer, items) => {
+	        const lastItem = items[items.length - 1];
+	        observer.observe(lastItem);
+	      };
+	      // 5. options.threshold로 정의한 Percent(%) 만큼 화면에 노출 혹은 제외 되면, entries 배열에 추가하고, Callback Function 을 호출한다.
+	      const observerCallback = (entries, observer) => {
+	        entries.forEach((entry) => {
+	          console.log(entry);
+	          if (entry.isIntersecting) {
+		  // 6. 노출여부 확인하고 추가 요청 보내고, 이전의 마지막 아이템 관찰 중지
+		    // 여기서 추가 요청 보내기
+	            observer.unobserve(entry.target);
+	            timer = setTimeout(() => {
+	   	      // 7. 새로운 마지막 아이템 찾기
+	              observeLastItem(observer, [
+	                ...document.querySelectorAll(".my-element"),
+	              ]);
+	            }, 1000);
+	          }
+	        });
+	      };
+	
+	      let items = [...document.querySelectorAll(".my-element")];
+	      // 1. .map으로 랜더링 된 NewItem들을 모두 가져온다.
+	      const observer = new IntersectionObserver(observerCallback, {
+	        threshold: 0.9,
+	      });
+	      // 2. observer를 생성해주고
+	      observeLastItem(observer, items);
+	      // 3. observeLastItem에 생성된 items들과 observer를 넘겨 실행한다.
+	    }, 2000);
+	
+	    return () => {
+	      clearTimeout(timer);
+	    };
+	  }, []);
+
+	  const fetchData = async () => {
+	    try {
+	      const response = await axios.get("http://localhost:8070/", {
+	        params: { display: 10, sort: "sim" },
+	      });
+	      // console.log(response.data);
+	      setFetchedData(response.data.items);
+	    } catch (error) {
+	      console.error("Error fetching data from server:", error);
+	    }
+	  };
+
+  return (
+    <div className={classes.articles}>
+      {fetchedData.length === 0 ? (
+        <h2>로딩중...!</h2>
+      ) : (
+        fetchedData.map((items, i) => (
+          <NewsItem
+            key={i}
+            title={items.title}
+            originallink={items.originallink}
+            description={items.description}
+            pubDate={items.pubDate}
+          />
+        ))
+      )}
+    </div>
+  );
+};
+
+export default News;
+```
+</details>
+
+### 기능 3 - 게시물 저장(bookmark)
 
 ### 기능 4 - 게시물 검색
 
