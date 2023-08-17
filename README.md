@@ -10,6 +10,7 @@
 
 <p align="center">
 GIF Images
+![실행테스트gif](https://github.com/PerSeMaverick/newsfetching/assets/104728148/e2320ec0-4ff0-43cc-aacb-97ac48c0d79c)
 </p>
 
 ## 프로젝트 소개
@@ -271,10 +272,247 @@ export default News;
 <br>
 
 ### 기능 3 - 게시물 저장(bookmark)
+처음 데이터를 받아왔을때, <br>
+NewsItem에서 함수 하나를 만들어서 전달할 props값들을 객체로 만들어 놓고, <br>
+어떤 작업(저장하기 버튼 누르기)으로 인해 해당 함수가 트리거 되면 그 정보를 가지고 bookMark에서 bookMarkItem으로 만든다.<br>
+```
+❗중요
+Redux를 사용해서 state를 나눌 때는 store파일 자체를 하나 더 만드는게 아니라,
+slice파일을 하나 더 만들어서 그 state를 store파일에서 import 해온 다음 등록해서 사용한다.
+```
+로그인하지 않으면 BookMarkModal이 뜨지 않고, LogginModal이 떠서 로그인을 해야해야만 저장기능을 이용할 수 있게 만들었다.<br>
+```
+1. 기존 state배열에 아무것도 없으면 payload된 객체를 배열에 추가하고, 
+2. 같은 객체를 배열에 추가하려고 하면 find로 객체를 하나하나 꺼내서 기존 id와 payload된 id를 비교하고 id가 같은 객체가 존재한다면 아무런 동작을 취하지 않고, isExist의 값만 true로 변경한다.
+3. 같은 id를 가진 객체가 없다면 기존 배열에 객체를 추가 한다.
+4. 삭제할때는 filter를 사용해서 payload된 id와 같지 않은 item들만 다시 새로운 state에 반환한다.
+```
+<details>
+<summary>코드 보기</summary>
+<div markdown="1">
+	
+```javascript
+(BookMarkModal.jsx)
+import React from "react";
+import ReactDOM from "react-dom";
+import { useSelector } from "react-redux";
 
+import BackDrop from "../../../UI/BackDrop";
+
+import classes from "./BookMarkModal.module.css";
+import style from "../../../UI/Modal.module.css";
+import BookMarkItems from "./BookMarkItems";
+
+const BookMark = () => {
+  let bookMark = useSelector((state) => state.bookMark);
+
+  return (
+    <div className={style.modal}>
+      <h2>내가 저장한 기사</h2>
+      {bookMark.storedArticle.length === 0 ? (
+        <p>저장한 항목이 없습니다.</p>
+      ) : (
+        <div className={classes.bookMarks}>
+          {bookMark.storedArticle.map((items) => {
+            return (
+              <div key={items.pubDate}>
+                <BookMarkItems
+                  id={items.pubDate}
+                  title={items.title}
+                  description={items.description}
+                  originallink={items.originallink}
+                  pubDate={items.pubDate}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const protalElement = document.getElementById("overlays");
+
+const BookMarkModal = (props) => {
+  return (
+    <>
+      {ReactDOM.createPortal(<BackDrop onHide={props.onHide} />, protalElement)}
+      {ReactDOM.createPortal(<BookMark />, protalElement)}
+    </>
+  );
+};
+
+export default BookMarkModal;
+
+```
+```javascript
+(bookMarkSlice.js)
+
+import { createSlice } from "@reduxjs/toolkit";
+
+let bookMark = createSlice({
+  name: "bookMark",
+  initialState: {
+    storedArticle: [], // storedArticle 프로퍼티의 초기값을 빈 배열로 설정
+    isExist: false,
+  },
+  reducers: {
+    onStore(state, action) {
+      // console.log(action.payload);
+      let exist = state.storedArticle.find((origin) => {
+        // console.log(origin.id);
+        // console.log(action.payload.id);
+        return origin.id === action.payload.id;
+      });
+      if (exist) {
+        state.isExist = true;
+        // console.log("이미 존재하는 게시물");
+      } else {
+        state.isExist = false;
+        state.storedArticle = [...state.storedArticle, action.payload];
+      }
+    },
+    onDeleteStore(state, action) {
+      // console.log(action.payload);
+      state.storedArticle = state.storedArticle.filter(
+        (origin) => origin.id !== action.payload
+        // filter를 사용해서 payload된 id와 같지 않은 item들만 다시 state에 담음
+      );
+    },
+  },
+});
+
+export let { onStore, onDeleteStore } = bookMark.actions;
+
+export default bookMark;
+```
+</details>
 <br>
 
 ### 기능 4 - 게시물 검색
+input으로 유저 입력을 받아서 변수에 저장한 다음 News.jsx로 넘겨주었다.<br>
+News.jsx에서 .include()함수를 사용해서, 받아온 데이터의 기사 제목에 유저가 입력한 string이 포함되어있는지 검사한 다음 <br>
+포함되어 있으면 해당 NewsItem을 렌더링 하게 코드를 작성했다.<br>
+
+불러온 데이터를 조건에 따라 둘다 렌더링 하는 것이 아니라<br>
+애초에 조건문으로 렌더링할 데이터를 필터링해서 한번만 그렸다.<br>
+
+그리고 검색 완료 후 input에 있는 문자열을 지워서 <br>
+다시 userSearchInput === ""가 되었을 때 <br>
+observeLastItem함수가 실행되지 않는 문제가 있었다.<br>
+
+이 문제는 <br>
+userSearchInput을 의존성 배열에 추가하고, <br>
+observerCallback 함수에 <br>
+&& userSearchInput === "" 조건을 추가해서 <br>
+input창에 유저의 입력이 없을 때 데이터를 추가 요청할 수 있게 했다.<br>
+fetchData 함수도 기존 데이터와 중복된 데이터를 제외한 새로운 데이터만 추가해주기 위해 !prevData.some을 사용했다.<br>
+
+<details>
+<summary>코드 보기</summary>
+<div markdown="1">
+	
+```javascript
+(News.jsx line.79)
+
+useEffect(() => {
+    let timer = setTimeout(() => {
+      const observeLastItem = (observer, items) => {
+        const lastItem = items[items.length - 1];
+        observer.observe(lastItem);
+        console.log(lastItem);
+      };
+
+      const observerCallback = (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && userSearchInput === "") {
+            observer.unobserve(entry.target);
+            if (reqCount.current <= 1000) {
+              reqCount.current += 10;
+              console.log(reqCount.current);
+              // 추가 요청 보내기
+              fetchData(reqCount.current);
+            } else {
+              setProgress(false);
+              console.log("No More Data");
+              return;
+            }
+
+            timer = setTimeout(() => {
+              setProgress(false);
+              observeLastItem(observer, [
+                ...document.querySelectorAll(".my-element"),
+              ]);
+            }, 1000);
+          }
+        });
+      };
+
+      const observer = new IntersectionObserver(observerCallback, {
+        threshold: 1,
+      });
+      observeLastItem(observer, [...document.querySelectorAll(".my-element")]);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [userSearchInput]);
+
+let displayItems = fetchedData
+    .filter((data) => {
+      if (userSearchInput === "") {
+        return data;
+      } else if (data.title.includes(userSearchInput)) {
+        return data;
+      }
+    })
+    .map((data, i) => (
+      <NewsItem
+        key={i}
+        id={data.pubDate}
+        title={data.title}
+        originallink={data.originallink}
+        description={data.description}
+        pubDate={data.pubDate}
+      />
+    ));
+
+  return (
+    <div className={classes.articles}>
+      {fetchedData.length === 0 ? null : displayItems}
+      {progress && (
+        <LinearProgress style={{ padding: "10px", margin: "20px" }} />
+      )}
+    </div>
+  );
+```
+```javascript
+(News.jsx line63)
+const fetchData = async (startCount) => {
+    setProgress(true);
+    try {
+      const response = await axios.get("http://localhost:8070/", {
+        params: { display: 10, start: startCount, sort: "date" },
+      });
+      let newItems = [...response.data.items];
+      setFetchedData((prevData) => {
+        // 기존 데이터와 중복된 데이터를 제외한 새로운 데이터만 추가
+        const newItemsFiltered = newItems.filter(
+          (item) =>
+            !prevData.some((prevItem) => prevItem.pubDate === item.pubDate)
+        );
+        return [...prevData, ...newItemsFiltered];
+      });
+    } catch (error) {
+      console.error("Error fetching data from server:", error);
+    } finally {
+      setProgress(false);
+    }
+  };이
+```
+</details>
 
 <br>
 
