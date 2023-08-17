@@ -9,8 +9,7 @@
 <br>
 
 <p align="center">
-GIF Images
-![실행테스트gif](https://github.com/PerSeMaverick/newsfetching/assets/104728148/e2320ec0-4ff0-43cc-aacb-97ac48c0d79c)
+	<img src="https://github.com/PerSeMaverick/newsfetching/assets/104728148/0c426d05-8529-434f-9c02-2cfa7515aa2d">
 </p>
 
 ## 프로젝트 소개
